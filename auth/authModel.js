@@ -9,6 +9,13 @@ function add(user){
     .then(([id]) => users.get(id))
 }
 
+function findBy(filter) {
+    return db('users')
+    .where(filter)
+    .first()
+}
+
 module.exports = {
-    add
+    add,
+    findBy,
 }

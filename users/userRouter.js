@@ -1,10 +1,12 @@
 const express = require("express");
 const db = require("./userModel");
+const jwt = require("jsonwebtoken");
 
 const users = express.Router();
 
-users.get("/", (req, res) => {
-  db.get()
+users.get("/", authenticated, (req, res) => {
+  const { department } = req.decodedToken
+  db.get(undefined, { department })
     .then(users => {
       if (users) {
         res
@@ -14,5 +16,21 @@ users.get("/", (req, res) => {
     })
     .catch(err => res.status(500).json({ error: true, message: err.message }));
 });
+
+function authenticated(req, res, next) {
+  const token = req.headers.authorization;
+
+  if (token) {
+    jwt.verify(token, process.env.SECRET, (err, decodedToken) => {
+      if (err) {
+        req.status(401).json({ error: true, message: err.message });
+      } else {
+        req.decodedToken = decodedToken;
+        next();
+      }
+    });
+  } else
+    res.status(400).json({ error: true, message: "No credentials passed" });
+}
 
 module.exports = users;
